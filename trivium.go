@@ -16,7 +16,8 @@ type Trivium struct {
 }
 
 const (
-	bits = 5 // 32 = 2^5
+	keyIvLengthBytes = 10 // bytes in the key and IV 10 bytes = 80 bits
+	bits             = 5  // 32 = 2^5
 
 	// the indices in the array for the given cells
 	i66  = 65 >> bits
@@ -60,14 +61,15 @@ const (
 // NewTrivium returns a Trivium cipher initialized with key and initialization value (IV).
 // Both the key and IV are 80-bits (10 bytes).  The initialization processes the cipher for
 // 4*288 cycles to "warm-up" and attempt to eliminate and usable dependency on key and IV.
-func NewTrivium(key, IV [10]byte) *Trivium {
+func NewTrivium(key, iv [keyIvLengthBytes]byte) *Trivium {
 	var state [9]uint32
+
 	state[0] = (uint32(key[3]) << 24) | (uint32(key[2]) << 16) | (uint32(key[1]) << 8) | uint32(key[0])
 	state[1] = (uint32(key[7]) << 24) | (uint32(key[6]) << 16) | (uint32(key[5]) << 8) | uint32(key[4])
-	state[2] = (uint32(IV[0]) << 29) | (uint32(key[9]) << 8) | uint32(key[8])
-	state[3] = (uint32(IV[4]) << 29) | (uint32(IV[3]) << 21) | (uint32(IV[2]) << 13) | (uint32(IV[1]) << 5) | (uint32(IV[0]) >> 3)
-	state[4] = (uint32(IV[8]) << 29) | (uint32(IV[7]) << 21) | (uint32(IV[6]) << 13) | (uint32(IV[5]) << 5) | (uint32(IV[4]) >> 3)
-	state[5] = (uint32(IV[9]) << 5) | (uint32(IV[8]) >> 3)
+	state[2] = (uint32(iv[0]) << 29) | (uint32(key[9]) << 8) | uint32(key[8])
+	state[3] = (uint32(iv[4]) << 29) | (uint32(iv[3]) << 21) | (uint32(iv[2]) << 13) | (uint32(iv[1]) << 5) | (uint32(iv[0]) >> 3)
+	state[4] = (uint32(iv[8]) << 29) | (uint32(iv[7]) << 21) | (uint32(iv[6]) << 13) | (uint32(iv[5]) << 5) | (uint32(iv[4]) >> 3)
+	state[5] = (uint32(iv[9]) << 5) | (uint32(iv[8]) >> 3)
 	// state[6] and state[7] are initialized with all zeros
 	state[8] = uint32(7) << 29
 	trivium := Trivium{state: state}
