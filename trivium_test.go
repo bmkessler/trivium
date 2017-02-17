@@ -15,7 +15,7 @@ func ExampleNewTrivium() {
 	var key = [10]byte{0x5F, 0xE5, 0x2A, 0x80, 0x75, 0xDA, 0x10, 0xAD, 0x46, 0xF0}
 	var iv = [10]byte{0xE3, 0x06, 0x9F, 0x49, 0xD4, 0x23, 0xBA, 0x6F, 0xF1, 0x14}
 	var trivium = NewTrivium(key, iv)
-
+	// note the key and iv are printed big-endian
 	fmt.Printf("key: %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n", key[9], key[8], key[7], key[6], key[5], key[4], key[3], key[2], key[1], key[0])
 	fmt.Printf("iv:  %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n", iv[9], iv[8], iv[7], iv[6], iv[5], iv[4], iv[3], iv[2], iv[1], iv[0])
 	fmt.Println("first 64 bytes of key stream:")
@@ -40,8 +40,9 @@ func ExampleNewTrivium() {
 // http://www.ecrypt.eu.org/stream/svn/viewcvs.cgi/*checkout*/ecrypt/trunk/submissions/trivium/unverified.test-vectors?rev=210
 // https://trac.cryptolib.org/avr-crypto-lib/browser/testvectors/trivium-80.80.test-vectors
 // these appear to load the key and iv incorrectly according to the spec
-// the vectors have the most significant byte of key and iv on the left
+// the vectors are big-endian, i.e. most significant byte of key and iv is on the left [9][8]...[1][0]
 // but the bit order is flipped, i.e. 0x80 should be loaded as 0x01 etc.
+// [72,73,74,75,76,77,78,79][64,65,66,67,68,69,70,71]...[8,9,10,11,12,13,14,15][0,1,2,3,4,5,6,7]
 const TestVectorFile8080 = "trivium-80.80.test-vectors"
 
 const (
@@ -70,7 +71,7 @@ func TestTriviumTestVectors(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer file.Close()
-	var key, iv [keyIvLengthBytes]byte
+	var key, iv [KeyLength]byte
 	var startingByte uint64
 	var tv []byte
 
@@ -78,24 +79,24 @@ func TestTriviumTestVectors(t *testing.T) {
 	for scanner.Scan() {
 		text := scanner.Text()
 		if keyRe.MatchString(text) {
-			key = [keyIvLengthBytes]byte{}
+			key = [KeyLength]byte{}
 			matches := keyRe.FindStringSubmatch(text)
-			for i := 0; i < keyIvLengthBytes; i++ {
+			for i := 0; i < KeyLength; i++ {
 				val, err := strconv.ParseUint(matches[1][2*i:2*i+2], 16, 8)
 				if err != nil {
 					t.Error(err)
 				}
-				key[keyIvLengthBytes-1-i] = byte(val) // the highest key bits are on the left
+				key[KeyLength-1-i] = byte(val) // the highest key bits are on the left
 			}
 		} else if ivRe.MatchString(text) {
-			iv = [keyIvLengthBytes]byte{}
+			iv = [KeyLength]byte{}
 			matches := ivRe.FindStringSubmatch(text)
-			for i := 0; i < keyIvLengthBytes; i++ {
+			for i := 0; i < KeyLength; i++ {
 				val, err := strconv.ParseUint(matches[1][2*i:2*i+2], 16, 8)
 				if err != nil {
 					t.Error(err)
 				}
-				iv[keyIvLengthBytes-1-i] = byte(val) // the highest iv bits are on the left
+				iv[KeyLength-1-i] = byte(val) // the highest iv bits are on the left
 			}
 		} else if streamRe.MatchString(text) {
 			tv = []byte{}
@@ -124,8 +125,8 @@ func TestTriviumTestVectors(t *testing.T) {
 			tv = []byte{} // ignore the digest and only test the key stream
 		}
 		if len(tv) == 64 {
-			var revKey, revIV [keyIvLengthBytes]byte
-			for i := 0; i < keyIvLengthBytes; i++ { // the bit order needs to be reversed to correspond to test vectors
+			var revKey, revIV [KeyLength]byte
+			for i := 0; i < KeyLength; i++ { // the bit order needs to be reversed to correspond to test vectors
 				revKey[i] = reverseByte(key[i])
 				revIV[i] = reverseByte(iv[i])
 			}
