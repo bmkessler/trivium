@@ -4,15 +4,15 @@ import (
 	"bufio"
 	"crypto/rand"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"os"
 
-	"fmt"
-
 	"github.com/bmkessler/trivium"
 )
 
+// command line flags
 const (
 	DEFAULT = "-"
 	ENCRYPT = "e"
@@ -22,7 +22,6 @@ const (
 
 func main() {
 	var inputFile, outputFile, keyFile *os.File
-	var err error
 	var b byte
 
 	log.SetPrefix("trivium: ")
@@ -39,14 +38,7 @@ func main() {
 		fallthrough // encrypt and decrypt proccess similarly
 	case DECRYPT:
 		// open the key file
-		if *keyFileName == DEFAULT {
-			keyFile = os.Stdin
-		} else {
-			keyFile, err = os.Open(*keyFileName)
-			if err != nil {
-				log.Fatalf("error opening %v: %v", *keyFileName, err)
-			}
-		}
+		keyFile = openFile(*keyFileName)
 		defer keyFile.Close()
 		// read the key
 		keyreader := bufio.NewReader(keyFile)
@@ -58,15 +50,7 @@ func main() {
 		if n != trivium.KeyLength {
 			log.Fatalf("Only read %d bytes < %d of input file %v for key", n, trivium.KeyLength, keyFile.Name())
 		}
-
-		if *inputFileName == DEFAULT {
-			inputFile = os.Stdin
-		} else {
-			inputFile, err = os.Open(*inputFileName)
-			if err != nil {
-				log.Fatalf("error opening %v: %v", *inputFileName, err)
-			}
-		}
+		inputFile = openFile(*inputFileName)
 		defer inputFile.Close()
 		reader := bufio.NewReader(inputFile)
 		// get the IV
@@ -92,14 +76,7 @@ func main() {
 		}
 		triv := trivium.NewTrivium(key, iv)
 
-		if *outputFileName == DEFAULT {
-			outputFile = os.Stdout
-		} else {
-			outputFile, err = os.Create(*outputFileName)
-			if err != nil {
-				log.Fatalf("error creating %v: %v", *outputFileName, err)
-			}
-		}
+		outputFile = createFile(*outputFileName)
 		defer outputFile.Close()
 
 		writer := bufio.NewWriter(outputFile)
@@ -123,14 +100,7 @@ func main() {
 			log.Fatalf("error reading from %v: %v", inputFile.Name(), err)
 		}
 	case GENKEY:
-		if *keyFileName == DEFAULT {
-			keyFile = os.Stdout
-		} else {
-			keyFile, err = os.Create(*keyFileName)
-			if err != nil {
-				log.Fatalf("error creating %v: %v", *keyFileName, err)
-			}
-		}
+		keyFile = createFile(*keyFileName)
 		defer keyFile.Close()
 		keybuffer := make([]byte, trivium.KeyLength)
 		_, err := rand.Read(keybuffer)
@@ -147,7 +117,37 @@ func main() {
 		log.Printf("wrote new key to %v", keyFile.Name())
 	default:
 		// no other modes are supported
-		log.Fatalf("-m mode must be one of: %v=encrypt, %v=decrypt, %v=generate key", ENCRYPT, DECRYPT, GENKEY)
+		flag.Usage()
 	}
 
+}
+
+// openFile convenience method to open a file or stdin and fatally log on failure
+func openFile(filename string) *os.File {
+	var file *os.File
+	var err error
+	if filename == DEFAULT {
+		file = os.Stdin
+	} else {
+		file, err = os.Open(filename)
+		if err != nil {
+			log.Fatalf("error opening %v: %v", filename, err)
+		}
+	}
+	return file
+}
+
+// createFile convenience method to create a file or stdout and fatally log on failure
+func createFile(filename string) *os.File {
+	var file *os.File
+	var err error
+	if filename == DEFAULT {
+		file = os.Stdout
+	} else {
+		file, err = os.Create(filename)
+		if err != nil {
+			log.Fatalf("error creating %v: %v", filename, err)
+		}
+	}
+	return file
 }
