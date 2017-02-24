@@ -37,7 +37,7 @@ func ExampleNewTrivium() {
 }
 
 // the "official" test vectors for 80-bit key and 80-bit IV
-// http://www.ecrypt.eu.org/stream/svn/viewcvs.cgi/*checkout*/ecrypt/trunk/submissions/trivium/unverified.test-vectors?rev=210
+// http://www.ecrypt.eu.org/stream/svn/viewcvs.cgi/checkout/ecrypt/trunk/submissions/trivium/unverified.test-vectors?rev=210
 // https://trac.cryptolib.org/avr-crypto-lib/browser/testvectors/trivium-80.80.test-vectors
 // these appear to load the key and iv incorrectly according to the spec
 // the vectors are big-endian, i.e. most significant byte of key and iv is on the left [9][8]...[1][0]
@@ -162,7 +162,7 @@ func TestTriviumTestVectors(t *testing.T) {
 	}
 }
 
-var testBit uint32
+var testBit uint64
 var testByte byte
 
 func BenchmarkTriviumBits(b *testing.B) {
