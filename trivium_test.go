@@ -201,7 +201,7 @@ func TestTriviumBytes(t *testing.T) {
 	}
 }
 
-var testBit uint32
+var testBit uint64
 var testByte byte
 var testBytes []byte
 
@@ -240,7 +240,7 @@ func BenchmarkTriviumBytes(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		testBytes = trivium.NextBytes(4)
+		testBytes = trivium.NextBytes(wordSize >> 3)
 	}
 	if trivium.NextBit() == 1 {
 		testByte = 1
