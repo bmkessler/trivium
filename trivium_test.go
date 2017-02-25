@@ -183,7 +183,7 @@ func TestTriviumBytes(t *testing.T) {
 	var trivium = NewTrivium(key, IV)
 	var triviumBytes = NewTrivium(key, IV)
 	var totalBytesToCompare uint = 4 * 288
-	var maxBytes uint = 4
+	var maxBytes uint = (wordSize >> 3)
 	for bytes := uint(1); bytes <= maxBytes; bytes++ {
 		for i := uint(0); i < totalBytesToCompare; {
 			KeyBytes := triviumBytes.NextBytes(bytes)
