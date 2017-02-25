@@ -1,4 +1,8 @@
 # trivium
+[![GoDoc](https://godoc.org/github.com/bmkessler/trivium?status.svg)](https://godoc.org/github.com/bmkessler/trivium)
+[![Build Status](https://travis-ci.org/bmkessler/trivium.svg?branch=master)](https://travis-ci.org/bmkessler/trivium)
+[![Coverage Status](https://coveralls.io/repos/github/bmkessler/trivium/badge.svg?branch=master)](https://coveralls.io/github/bmkessler/trivium?branch=master)
+
 A simple golang implementation of the lightweight trivium stream cipher.
 
 DISCLAIMER: This package is purely for fun and makes no claim or waranty of security.
