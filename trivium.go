@@ -14,9 +14,6 @@ to calculate up to 64 bits at a time.
 */
 package trivium
 
-import "strconv"
-import "fmt"
-
 // Trivium represents the 288-bit state of the Trivium cipher.
 type Trivium struct {
 	state [5]uint64
@@ -159,16 +156,6 @@ func (t *Trivium) NextBits(n uint) uint64 {
 	return z
 }
 
-func printWord(word uint64) {
-	buff := make([]byte, 0, wordSize)
-	bits := []byte(strconv.FormatUint(uint64(word), 2))
-	for j := len(bits); j < wordSize; j++ {
-		buff = append(buff, '0') // add any leading zeros
-	}
-	buff = append(buff, bits...) // append the bits
-	fmt.Println(string(buff))
-}
-
 // NextByte returns the next byte of key stream with the MSB as the last bit produced.
 // the first byte produced will have bits [76543210] of the keystream
 func (t *Trivium) NextByte() byte {
@@ -185,20 +172,6 @@ func (t *Trivium) NextBytes(n uint) []byte {
 	}
 
 	return output
-}
-
-// String outputs a '0' and '1' representation of the trivium internal state
-// as a binary string with the first bit at the left.
-func (t Trivium) String() string {
-	buff := make([]byte, 0, wordSize*len(t.state))
-	for _, word := range t.state {
-		bits := []byte(strconv.FormatUint(uint64(word), 2))
-		for j := len(bits); j < wordSize; j++ {
-			buff = append(buff, '0') // add any leading zeros
-		}
-		buff = append(buff, bits...) // append the bits
-	}
-	return string(buff)
 }
 
 // reverseByte reverses the bits in byte
