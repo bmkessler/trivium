@@ -9,7 +9,7 @@ Trivium is a light weight stream cipher developed to be particularly efficient i
 The trivium specification is http://www.ecrypt.eu.org/stream/p3ciphers/trivium/trivium_p3.pdf
 
 This is a straighforward implementation based on the specification using SWAR calculations
-to calculate up to 32 bits at a time.
+to calculate up to 64 bits at a time.
 
 */
 package trivium
